@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📝 Note-Taking App</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #4a6fa5;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    header h1 { font-size: 1.4rem; font-weight: 600; }
+
+    main {
+      max-width: 860px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    /* ── Cards ─────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #4a6fa5;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Forms ─────────────────────────────────────── */
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+    label { font-size: 0.85rem; font-weight: 500; color: #4a5568; }
+    input[type="text"], textarea {
+      border: 1px solid #cbd5e0;
+      border-radius: 5px;
+      padding: 0.5rem 0.7rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: #4a6fa5;
+      box-shadow: 0 0 0 3px rgba(74,111,165,0.15);
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    /* ── Buttons ───────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.1rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary  { background: #4a6fa5; color: #fff; }
+    .btn-primary:hover  { background: #3a5a8f; }
+    .btn-search   { background: #667eea; color: #fff; }
+    .btn-search:hover   { background: #5a67d8; }
+    .btn-clear    { background: #e2e8f0; color: #4a5568; }
+    .btn-clear:hover    { background: #cbd5e0; }
+
+    /* ── Search bar ────────────────────────────────── */
+    .search-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .search-row input { flex: 1; }
+
+    /* ── Note list ─────────────────────────────────── */
+    #notes-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .note-card {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #4a6fa5;
+      border-radius: 6px;
+      padding: 0.9rem 1rem;
+    }
+    .note-card.pinned   { border-left-color: #f6ad55; }
+    .note-card.archived { border-left-color: #a0aec0; opacity: 0.75; }
+
+    .note-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+    .note-title  { font-weight: 600; font-size: 1rem; }
+    .note-badges { display: flex; gap: 0.3rem; flex-shrink: 0; }
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-pin     { background: #fefcbf; color: #744210; }
+    .badge-archive { background: #e2e8f0; color: #4a5568; }
+
+    .note-content {
+      font-size: 0.9rem;
+      color: #4a5568;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 0.5rem;
+    }
+    .note-meta {
+      font-size: 0.75rem;
+      color: #a0aec0;
+    }
+    .note-tags {
+      margin-top: 0.35rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .tag-pill {
+      background: #ebf4ff;
+      color: #2b6cb0;
+      font-size: 0.72rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+    }
+
+    /* ── Status / empty ────────────────────────────── */
+    #status-msg {
+      font-size: 0.85rem;
+      min-height: 1.2em;
+      margin-top: 0.4rem;
+    }
+    .msg-ok  { color: #276749; }
+    .msg-err { color: #c53030; }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: #a0aec0;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span style="font-size:1.6rem;">📝</span>
+  <h1>Note-Taking App</h1>
+</header>
+
+<main>
+
+  <!-- ── Search ──────────────────────────────────────────────────────── -->
+  <div class="card">
+    <h2>🔍 Search Notes</h2>
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Search by title or content…" />
+      <button class="btn btn-search" onclick="doSearch()">Search</button>
+      <button class="btn btn-clear"  onclick="clearSearch()">Clear</button>
+    </div>
+  </div>
+
+  <!-- ── Create Note ─────────────────────────────────────────────────── -->
+  <div class="card">
+    <h2>✏️ Create Note</h2>
+    <div class="form-group">
+      <label for="create-user-id">User ID</label>
+      <input type="text" id="create-user-id" placeholder="e.g. 1" />
+    </div>
+    <div class="form-group">
+      <label for="create-title">Title</label>
+      <input type="text" id="create-title" placeholder="Note title" />
+    </div>
+    <div class="form-group">
+      <label for="create-content">Content</label>
+      <textarea id="create-content" placeholder="Write your note here…"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="createNote()">➕ Create Note</button>
+    <p id="status-msg"></p>
+  </div>
+
+  <!-- ── Notes List ──────────────────────────────────────────────────── -->
+  <div class="card">
+    <h2>📋 All Notes</h2>
+    <div id="notes-list">
+      <p class="empty-state">Loading notes…</p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  function setStatus(msg, ok = true) {
+    const el = document.getElementById('status-msg');
+    el.textContent = msg;
+    el.className = ok ? 'msg-ok' : 'msg-err';
+    if (ok) setTimeout(() => { el.textContent = ''; }, 3000);
+  }
+
+  function formatDate(iso) {
+    return new Date(iso).toLocaleString(undefined, {
+      dateStyle: 'medium', timeStyle: 'short'
+    });
+  }
+
+  function renderNote(note) {
+    const classes = ['note-card'];
+    if (note.is_pinned)   classes.push('pinned');
+    if (note.is_archived) classes.push('archived');
+
+    const badges = [
+      note.is_pinned   ? '<span class="badge badge-pin">📌 Pinned</span>'   : '',
+      note.is_archived ? '<span class="badge badge-archive">🗃 Archived</span>' : '',
+    ].join('');
+
+    const tags = note.tags.length
+      ? '<div class="note-tags">' + note.tags.map(t => `<span class="tag-pill">#${t}</span>`).join('') + '</div>'
+      : '';
+
+    return `
+      <div class="${classes.join(' ')}">
+        <div class="note-header">
+          <span class="note-title">${escHtml(note.title)}</span>
+          <span class="note-badges">${badges}</span>
+        </div>
+        <div class="note-content">${escHtml(note.content)}</div>
+        ${tags}
+        <div class="note-meta">
+          ID: ${note.id} &nbsp;·&nbsp; User: ${note.user_id}
+          &nbsp;·&nbsp; Created: ${formatDate(note.created_at)}
+          ${note.notebook_id ? '&nbsp;·&nbsp; Notebook: ' + note.notebook_id : ''}
+        </div>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderNoteList(notes) {
+    const container = document.getElementById('notes-list');
+    if (!notes || notes.length === 0) {
+      container.innerHTML = '<p class="empty-state">No notes found.</p>';
+      return;
+    }
+    container.innerHTML = notes.map(renderNote).join('');
+  }
+
+  // ── Load all notes ────────────────────────────────────────────────────────
+
+  async function loadNotes() {
+    try {
+      const res = await fetch('/notes');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const notes = await res.json();
+      renderNoteList(notes);
+    } catch (err) {
+      document.getElementById('notes-list').innerHTML =
+        `<p class="empty-state msg-err">Failed to load notes: ${err.message}</p>`;
+    }
+  }
+
+  // ── Create note ───────────────────────────────────────────────────────────
+
+  async function createNote() {
+    const userId  = document.getElementById('create-user-id').value.trim();
+    const title   = document.getElementById('create-title').value.trim();
+    const content = document.getElementById('create-content').value.trim();
+
+    if (!userId || !title || !content) {
+      setStatus('Please fill in all fields (User ID, Title, Content).', false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, title, content }),
+      });
+
+      if (res.status === 404) {
+        const err = await res.json();
+        setStatus(`Error: ${err.detail}`, false);
+        return;
+      }
+      if (!res.ok) {
+        setStatus(`Error: HTTP ${res.status}`, false);
+        return;
+      }
+
+      // Clear form
+      document.getElementById('create-title').value   = '';
+      document.getElementById('create-content').value = '';
+      setStatus('✅ Note created!', true);
+      loadNotes();
+    } catch (err) {
+      setStatus(`Network error: ${err.message}`, false);
+    }
+  }
+
+  // ── Search ────────────────────────────────────────────────────────────────
+
+  async function doSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) { loadNotes(); return; }
+
+    try {
+      const res = await fetch(`/notes/search?q=${encodeURIComponent(q)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const notes = await res.json();
+      renderNoteList(notes);
+    } catch (err) {
+      document.getElementById('notes-list').innerHTML =
+        `<p class="empty-state msg-err">Search failed: ${err.message}</p>`;
+    }
+  }
+
+  function clearSearch() {
+    document.getElementById('search-input').value = '';
+    loadNotes();
+  }
+
+  // Allow hitting Enter in the search box
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  loadNotes();
+</script>
+</body>
+</html>
